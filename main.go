@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type User struct {
@@ -34,10 +35,11 @@ func main(){
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/",rootHandler)
-	mux.HandleFunc("/health", healthChecker)
+	mux.HandleFunc("GET /",rootHandler)
+	mux.HandleFunc("GET /health", healthChecker)
 	mux.HandleFunc("POST /create-user", createUserHandler)
 	mux.HandleFunc("GET /users", getUserHandler)
+	mux.HandleFunc("GET /users/{id}", getSingleUserHandler)
 
 
 	fmt.Println("Server is running on port 5000")
@@ -71,8 +73,7 @@ func createUserHandler (w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
  
-	encoder := json.NewEncoder(w)
-	encoder.Encode(newUser)
+	json.NewEncoder(w).Encode(newUser)
 
 }
 
@@ -82,7 +83,27 @@ func getUserHandler (w http.ResponseWriter, r *http.Request){
 	// formatUsers, _ := json.Marshal(users)
 	// w.Write(formatUsers)
 
-	encoder := json.NewEncoder(w)
-	encoder.Encode(users)
+	json.NewEncoder(w).Encode(users)
 
+}
+
+func getSingleUserHandler (w http.ResponseWriter, r *http.Request){
+	idParam := r.PathValue("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Invalid ID parameter")
+		return
+	}
+
+	for _, user := range users {
+		if user.ID == id {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+		    json.NewEncoder(w).Encode(user)
+		 
+		}
+			
+	}				
 }
