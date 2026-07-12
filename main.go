@@ -58,7 +58,22 @@ func healthChecker (w http.ResponseWriter, r *http.Request){
 }
 
 func createUserHandler (w http.ResponseWriter, r *http.Request){
-	fmt.Fprintln(w, "User Created Successfully")
+
+	var newUser User
+	err := json.NewDecoder(r.Body).Decode(&newUser)
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Error decoding JSON", err)
+		return
+	}
+
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+ 
+	encoder := json.NewEncoder(w)
+	encoder.Encode(newUser)
+
 }
 
 func getUserHandler (w http.ResponseWriter, r *http.Request){
