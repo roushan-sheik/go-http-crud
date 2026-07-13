@@ -40,6 +40,9 @@ func main(){
 	mux.HandleFunc("POST /create-user", createUserHandler)
 	mux.HandleFunc("GET /users", getUserHandler)
 	mux.HandleFunc("GET /users/{id}", getSingleUserHandler)
+	mux.HandleFunc("PUT /users/{id}", updateUserHandler)
+	// mux.HandleFunc("DELETE /users/{id}", deleteUserHandler)
+
 
 
 	fmt.Println("Server is running on port 5000")
@@ -102,6 +105,43 @@ func getSingleUserHandler (w http.ResponseWriter, r *http.Request){
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 		    json.NewEncoder(w).Encode(user)
+		 
+		}
+			
+	}				
+}
+
+func updateUserHandler (w http.ResponseWriter, r *http.Request){
+	idParam := r.PathValue("id")
+	
+	
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Invalid ID parameter")
+		return
+	}
+	updatedUser := User{}
+
+	err = json.NewDecoder(r.Body).Decode(&updatedUser)
+	
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Invalid Req Body", err)
+		return
+	}
+
+	
+	for idx, user := range users {
+		if user.ID == id {
+		updatedUser.ID = user.ID
+		users[idx] = updatedUser
+					
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(updatedUser)
+		return
 		 
 		}
 			
